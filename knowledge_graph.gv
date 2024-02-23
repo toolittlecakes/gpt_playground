@@ -1,0 +1,12 @@
+// Knowledge Graph
+digraph {
+	1 [label="Knowledge Graph" color=blue]
+	2 [label=Input color=green]
+	3 [label=Understanding color=yellow]
+	4 [label=Description color=orange]
+	5 [label=Detailed color=purple]
+	2 -> 1 [label="is part of" color=black]
+	1 -> 3 [label="leads to" color=black]
+	3 -> 4 [label=involves color=black]
+	4 -> 5 [label=contains color=black]
+}
