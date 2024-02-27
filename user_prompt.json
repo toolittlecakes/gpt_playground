@@ -1,0 +1,102 @@
+{
+  "$defs": {
+    "AggressionPlan": {
+      "properties": {
+        "tactic": {
+          "description": "Aggressor's tactic",
+          "enum": [
+            "Scary-Accuser",
+            "Scary-Connector",
+            "Sympathetic-Accuser",
+            "Sympathetic-Connector",
+            "Answering",
+            "Agreement",
+            "Negotiation",
+            "True Emotions"
+          ],
+          "title": "Tactic",
+          "type": "string"
+        },
+        "explanation": {
+          "description": "Aggressor's tactic details with highlighs and references to defense analysis",
+          "title": "Explanation",
+          "type": "string"
+        },
+        "phrase": {
+          "description": "Aggressor's next phrase without quotes in Russian language",
+          "title": "Phrase",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tactic",
+        "explanation",
+        "phrase"
+      ],
+      "title": "AggressionPlan",
+      "type": "object"
+    },
+    "DefenceAnalysis": {
+      "properties": {
+        "tactic": {
+          "description": "Defender's tactic",
+          "enum": [
+            "Assertive-Distancing",
+            "Assertive-Attachment",
+            "Protective-Attachment",
+            "Protective-Distancing",
+            "Processing Emotions",
+            "Showing Boundaries",
+            "Defending Boundaries",
+            "Separation"
+          ],
+          "title": "Tactic",
+          "type": "string"
+        },
+        "explanation": {
+          "description": "Defender's explanation",
+          "title": "Explanation",
+          "type": "string"
+        },
+        "score": {
+          "description": "The success of the defence according to the technics",
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Score",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tactic",
+        "explanation",
+        "score"
+      ],
+      "title": "DefenceAnalysis",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "defender_analysis": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/DefenceAnalysis"
+        }
+      ],
+      "description": "Defender's analysis"
+    },
+    "aggression_plan": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/AggressionPlan"
+        }
+      ],
+      "description": "Aggressor's plan"
+    }
+  },
+  "required": [
+    "defender_analysis",
+    "aggression_plan"
+  ],
+  "title": "Response",
+  "type": "object"
+}

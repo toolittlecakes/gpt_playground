@@ -11,7 +11,11 @@ if len(sys.argv) > 1:
     filename = sys.argv[1]
 
 
+def remove_comments(text: str):
+    return re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+
 def build_template(prompt_template: str):
+    prompt_template = remove_comments(prompt_template)
     arguments = re.findall(r"{{(.*?)}}", prompt_template, flags=re.DOTALL)
     prompts = {
         argument: build_template(CWD.joinpath(f"{argument.lower()}.md").read_text())
