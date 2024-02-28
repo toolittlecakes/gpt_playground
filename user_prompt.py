@@ -120,9 +120,9 @@ Assistant's role description:
 
 USER_PROMPT = (
     PROMPT_PREFIX
-    + "\n\n"
+    + "\n"
     + """
-{player_role} (assistant): ...
+{assistant_role} (assistant): ...
 
 ## ASK
 
