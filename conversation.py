@@ -1,18 +1,19 @@
 import json
+import os
 
 import lunary
 from openai import OpenAI
 from pydantic import BaseModel
 
-import env
-from user_prompt import FEEDBACK_PROMPT, USER_PROMPT, Response
+from user_prompt import FEEDBACK_PROMPT, USER_PROMPT
 
 with open("prompts/_compiled_system.md") as f:
     SYSTEM_PROMPT = f.read()
 
-
-
 client = OpenAI()
+
+from dotenv import load_dotenv
+load_dotenv()
 lunary.monitor(client)
 
 
@@ -29,7 +30,6 @@ class Message(BaseModel):
             "</blockquote></details>"
             f"{self.content}"
         )
-
 
 
 class Context(BaseModel):
@@ -65,23 +65,17 @@ def get_response(context: Context, **kwargs):
             for message in context.messages
         ),
     )
-    print("\n\n\n")
-    print(user_prompt)
-    print("\n\n\n")
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": user_prompt},
     ]
-    with lunary.tags("get_response"):
-        response = request_gpt(messages, response_format={"type": "json_object"}, **kwargs)
-    # phrase = ["aggression_plan"]["phrase"]
+    # with lunary.tags("get_response"):
+    response = request_gpt(messages, response_format={"type": "json_object"}, **kwargs)
     if response.choices[0].finish_reason == "length":
         raise ValueError("Response too long. Json response is not complete.")
     content = response.choices[0].message.content
-    print(content)
     content = json.loads(content)
     return content
-    return phrase, response.model_dump_json()
 
 
 def get_feedback(context: Context, **kwargs):
@@ -101,20 +95,23 @@ def get_feedback(context: Context, **kwargs):
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": user_prompt},
     ]
-    with lunary.tags("get_feedback"):
-        response = request_gpt(messages, response_format={"type": "json_object"}, **kwargs)
+
+    response = request_gpt(messages, max_tokens=1500, **kwargs)
     return response.choices[0].message.content
 
 
-# async def get_response_stream(context: Context):
-#     async for chunk in await get_response(context, stream=True):
-#         if content := chunk.choices[0].delta.content:
-#             yield content
+class AssistantWithMonitoring:
+    def __init__(self, user_id, session_id):
+        self.user_id = user_id
+        self.session_id = session_id
 
+    def get_response(self, context: Context, **kwargs):
+        with lunary.identify(self.user_id):
+            with lunary.tags("get_response"):
+                return get_response(context, **kwargs)
 
-# from compiled_prompts.analysis import ANALYSIS
-
-# async def get_analysis(context: Context, **kwargs):
-#     enriched_context = context.model_copy()
-#     enriched_context.messages.append({"role": "user", "content": ANALYSIS})
-#     return await get_response(enriched_context, **kwargs)
+    def get_feedback(self, context: Context, **kwargs):
+        print(self.user_id, self.session_id)
+        with lunary.identify(self.user_id):
+            with lunary.tags("get_feedback"):
+                return get_feedback(context, **kwargs)

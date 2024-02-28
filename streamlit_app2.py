@@ -7,15 +7,16 @@ st.write("# Cookie Manager")
 
 if "session_id" not in st.session_state:
     st.session_state.session_id = uuid.uuid4()
-st.session_state
+# st.session_state
 
-@st.cache_resource
+@st.cache_resource(experimental_allow_widgets=True)
 def get_manager():
     return stx.CookieManager()
 
 cookie_manager = get_manager()
 
 st.subheader("All Cookies:")
+# cookies = cookie_manager.get("session_id")
 cookies = cookie_manager.get_all()
 st.write(cookies)
 

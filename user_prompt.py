@@ -1,5 +1,6 @@
 import json
 from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -9,7 +10,12 @@ class DefenderQuadrant(BaseModel):
     distancing: int = Field(ge=0, le=3)
     attachment: int = Field(ge=0, le=3)
 
-    quadrant: Literal["Assertive-Distancing", "Assertive-Attachment", "Protective-Attachment", "Protective-Distancing"]
+    quadrant: Literal[
+        "Assertive-Distancing",
+        "Assertive-Attachment",
+        "Protective-Attachment",
+        "Protective-Distancing",
+    ]
 
 
 class ManipulationDefenderAnalysis(BaseModel):
@@ -20,7 +26,9 @@ class ManipulationDefenderAnalysis(BaseModel):
 
 class NonManipulationDefenderAnalysis(BaseModel):
     defence_success: Literal[True]
-    defender_stage: Literal["Processing Emotions", "Showing Boundaries", "Defending Boundaries", "Separation"]
+    defender_stage: Literal[
+        "Emotion Treatment", "Showing Boundaries", "Defending Boundaries", "Separation"
+    ]
     # next_manipulation_stage: Literal["Showing Emotions", ""
 
 
@@ -28,9 +36,6 @@ class Analysis(BaseModel):
     defender_analysis: (
         ManipulationDefenderAnalysis | NonManipulationDefenderAnalysis
     ) = Field(discriminator="defence_success")
-
-
-
 
 
 # {{
@@ -46,16 +51,41 @@ class Analysis(BaseModel):
 #     }}
 # }}
 
+
 class DefenceAnalysis(BaseModel):
-    tactic: Literal["Assertive-Distancing", "Assertive-Attachment", "Protective-Attachment", "Protective-Distancing", "Processing Emotions", "Showing Boundaries", "Defending Boundaries", "Separation"] = Field(description="Defender's tactic")
+    tactic: Literal[
+        "Assertive-Distancing",
+        "Assertive-Attachment",
+        "Protective-Attachment",
+        "Protective-Distancing",
+        "Emotion Treatment",
+        "Showing Boundaries",
+        "Defending Boundaries",
+        "Separation",
+    ] = Field(description="Defender's tactic")
     explanation: str = Field(description="Defender's explanation")
-    score: int = Field(ge=1, le=5, description="The success of the defence according to the technics")
+    score: int = Field(
+        ge=1, le=5, description="The success of the defence according to the technics"
+    )
 
 
 class AggressionPlan(BaseModel):
-    tactic: Literal["Scary-Accuser", "Scary-Connector", "Sympathetic-Accuser", "Sympathetic-Connector", "Answering", "Agreement", "Negotiation", "True Emotions"] = Field(description="Aggressor's tactic")
-    explanation: str = Field(description="Aggressor's tactic details with highlighs and references to defense analysis")
-    phrase: str = Field(description="Aggressor's next phrase without quotes in Russian language")
+    tactic: Literal[
+        "Scary-Accuser",
+        "Scary-Connector",
+        "Sympathetic-Accuser",
+        "Sympathetic-Connector",
+        "Answering",
+        "Agreement",
+        "Negotiation",
+        "True Emotions",
+    ] = Field(description="Aggressor's tactic")
+    explanation: str = Field(
+        description="Aggressor's tactic details with highlighs and references to defense analysis"
+    )
+    phrase: str = Field(
+        description="Aggressor's next phrase without quotes in Russian language"
+    )
 
 
 class Response(BaseModel):
@@ -67,9 +97,7 @@ with open("user_prompt.json", "w") as f:
     json.dump(Response.model_json_schema(), f, indent=2)
 
 
-
-
-USER_PROMPT = """
+PROMPT_PREFIX = """
 ## CONTEXT
 
 ### SITUATION
@@ -77,26 +105,40 @@ USER_PROMPT = """
 {situation}
 
 Roles:
-Aggressor (You): {assistant_role}
+Aggressor (Assistant - you): {assistant_role}
 Defender (User): {player_role}
 
+
+Assistant's role description:
 {assistant_role_description}
 
 ### CONVERSATION HISTORY
 
 {history}
+"""
 
+
+USER_PROMPT = (
+    PROMPT_PREFIX
+    + "\n\n"
+    + """
 {player_role} (assistant): ...
 
 ## ASK
 
 Provide an analisys of the last Defender's phrase and the next Aggressor's phrase (according to the constraints in system prompt) that will be used instead of ... above.
 
+## CONSTRAINTS
+
+* Answer phrase should align with the character's role and the last phrase of the conversation.
+*
+
+
 ## FORMAT (pure JSON)
 
 {{
     "defence_analysis": {{
-        "analysis": [analysis],
+        "analysis": [analysis according to the theory in ### Defense Strategies section],
         "tactic": [one of the quadrants from the ### Defense Strategies or one of the stages from the ### Real Defense Strategies],
         "score": [mark from 0 to 10, according to the theory in ### Defense Strategies section]
     }},
@@ -107,31 +149,16 @@ Provide an analisys of the last Defender's phrase and the next Aggressor's phras
     }}
 }}
 """.strip()
+)
 
-        # "tactic": [tactic of manipulation or on of ("Answering", "Agreement", "Negotiation", "True Emotions") if
 
-
-FEEDBACK_PROMPT = """
-## CONTEXT
-
-### SITUATION
-
-{situation}
-
-Roles:
-Aggressor (You): {assistant_role}
-Defender (User): {player_role}
-
-{assistant_role_description}
-
-### CONVERSATION HISTORY
-
-{history}
-
+FEEDBACK_PROMPT = (
+    PROMPT_PREFIX
+    + "\n\n"
+    + """
 ## ASK
 
 Provide an analisys of how Defender performed during the conflict based on the conversation history and the current situation. Highlight the most important moments, examples of good tactics and areas of improvement. Use Markdown to format your answer. Use the role names instead of Defender and Aggressor. Use only Russian language.
 
 """.strip()
-
-        # "tactic": [tactic of manipulation or on of ("Answering", "Agreement", "Negotiation", "True Emotions") if
+)
