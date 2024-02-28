@@ -140,9 +140,10 @@ with st.container():
     col1, col2, col3 = st.columns([0.2, 0.2, 0.6])
     with col1:
         if st.button("Удалить", key="delete_last_message", use_container_width=True):
-            st.session_state.messages.pop()
-            st.session_state.turn = "user"
-            st.rerun()
+            if len(st.session_state.messages) > 1:
+                st.session_state.messages.pop()
+                st.session_state.turn = "user"
+                st.rerun()
     with col2:
         if st.button("Запустить", key="rerun", use_container_width=True):
             st.session_state.turn = "assistant"
