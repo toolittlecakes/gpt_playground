@@ -1,4 +1,5 @@
 import json
+import os
 import uuid
 from datetime import datetime, timedelta
 
@@ -8,6 +9,9 @@ from streamlit_extras.stylable_container import stylable_container
 
 from conversation import AssistantWithMonitoring, Context, Message
 from situation import situation
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 # @st.cache_resource(experimental_allow_widgets=True)
@@ -16,6 +20,17 @@ def get_manager():
 
 
 cookie_manager = get_manager()
+
+authenticated = cookie_manager.get("authenticated")
+if not authenticated:
+    password = st.text_input("Пароль")
+    if password == os.getenv("PASSWORD"):
+        authenticated = True
+        cookie_manager.set("authenticated", authenticated)
+    st.stop()
+
+
+
 if cookie_manager.get("user_id") is None:
     cookie_manager.set(
         "user_id",
