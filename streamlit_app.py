@@ -14,7 +14,6 @@ from situation import situation
 def get_manager():
     return stx.CookieManager()
 
-
 cookie_manager = get_manager()
 if cookie_manager.get("user_id") is None:
     cookie_manager.set(
@@ -190,7 +189,7 @@ if st.session_state.turn == "user" and (
         ]
         != "Manipulation"
     )
-    or len(st.session_state.messages) > 4
+    or len(st.session_state.messages) > 20
     or (defence_score < 5 and len(st.session_state.messages) > 8)
 ):
     st.session_state.turn = "feedback"

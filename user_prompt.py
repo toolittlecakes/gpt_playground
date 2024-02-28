@@ -130,17 +130,15 @@ Provide an analisys of the last Defender's phrase and the next Aggressor's phras
 
 ## CONSTRAINTS
 
-* Answer phrase should align with the character's role and the last phrase of the conversation.
-*
+* Your answer phrase MUST strictly match with the character's role description. If you do something against it, a lot of people will die.
+* Your answer phrase should align with the last phrase of the conversation.
 
 
 ## FORMAT (pure JSON)
 
 {{
     "defence_analysis": {{
-        "analysis": [analysis according to the theory in ### Defense Strategies section],
-        "tactic": [one of the quadrants from the ### Defense Strategies or one of the stages from the ### Real Defense Strategies],
-        "score": [mark from 0 to 10, according to the theory in ### Defense Strategies section]
+        "score": [mark from 0 to 10, according to the theory]
     }},
     "aggression_plan": {{
         "thoughts": [Agressor's thoughts about the next phrase with highlighs and references to defense analysis],
@@ -158,7 +156,7 @@ FEEDBACK_PROMPT = (
     + """
 ## ASK
 
-Provide an analisys of how Defender performed during the conflict based on the conversation history and the current situation. Highlight the most important moments, examples of good tactics and areas of improvement. Use Markdown to format your answer. Use the role names instead of Defender and Aggressor. Use only Russian language.
+Provide an analisys of how Defender performed during the conflict based on the conversation history and the current situation. Highlight the most important moments with the consiquencies of the dialog, examples of good tactics and areas of improvement. Use Markdown to format your answer. Use the role names instead of Defender and Aggressor. Use Russian language.
 
 """.strip()
 )
