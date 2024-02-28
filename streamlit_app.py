@@ -199,16 +199,16 @@ if st.session_state.turn == "assistant":
     st.rerun()
 
 
-defence_analisys = [
-    json.loads(m.explanation)["defence_analysis"]
-    for m in st.session_state.messages
-    if m.explanation
-]
-defence_score = (
-    sum(int(analysis["score"]) for analysis in defence_analisys) / len(defence_analisys)
-    if defence_analisys
-    else 0
-)
+# defence_analisys = [
+#     json.loads(m.explanation)["defence_analysis"]
+#     for m in st.session_state.messages
+#     if m.explanation
+# ]
+# defence_score = (
+#     sum(int(analysis["score"]) for analysis in defence_analisys) / len(defence_analisys)
+#     if defence_analisys
+#     else 0
+# )
 
 if st.session_state.turn == "user" and (
     (
@@ -219,8 +219,8 @@ if st.session_state.turn == "user" and (
         ]
         != "Manipulation"
     )
-    or len(st.session_state.messages) > 20
-    or (defence_score < 5 and len(st.session_state.messages) > 8)
+    or len(st.session_state.messages) > 10
+    # or (defence_score < 5 and len(st.session_state.messages) > 8)
 ):
     st.session_state.turn = "feedback"
     st.rerun()

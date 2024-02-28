@@ -110,7 +110,9 @@ Defender (User): {player_role}
 
 
 Assistant's role description:
+```
 {assistant_role_description}
+```
 
 ### CONVERSATION HISTORY
 
@@ -137,13 +139,10 @@ Provide an analisys of the last Defender's phrase and the next Aggressor's phras
 ## FORMAT (pure JSON)
 
 {{
-    "defence_analysis": {{
-        "score": [mark from 0 to 10, according to the theory]
-    }},
     "aggression_plan": {{
         "thoughts": [Agressor's thoughts about the next phrase with highlighs and references to defense analysis],
-        "tactic": [tactic, one of ("Manipulation", "Agreement", "Negotiation", "True Emotions")],
-        "phrase": [phrase without quotes in Russian language]
+        "phrase": [phrase without quotes in Russian language],
+        "tactic": [tactic, one of ("Manipulation", "Agreement", "Negotiation", "True Emotions", "Stop Conversation")]
     }}
 }}
 """.strip()
