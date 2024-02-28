@@ -19,7 +19,7 @@ if cookie_manager.get("user_id") is None:
     cookie_manager.set(
         "user_id",
         str(uuid.uuid4()),
-        expires_at=datetime.now() + timedelta(days=365),
+        expires_at=datetime.now() + timedelta(days=90),
     )
 
 if "user_id" not in st.session_state:

@@ -6,14 +6,15 @@ from openai import OpenAI
 from pydantic import BaseModel
 
 from user_prompt import FEEDBACK_PROMPT, USER_PROMPT
+from dotenv import load_dotenv
+
+load_dotenv()
 
 with open("prompts/_compiled_system.md") as f:
     SYSTEM_PROMPT = f.read()
 
 client = OpenAI()
 
-from dotenv import load_dotenv
-load_dotenv()
 lunary.monitor(client)
 
 
