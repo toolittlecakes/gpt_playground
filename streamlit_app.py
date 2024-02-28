@@ -98,6 +98,8 @@ st.write(st.session_state.situation.description)
 if not st.button("Начать") and "messages" not in st.session_state:
     st.stop()
 
+st.write(f"Твоя роль: **{st.session_state.situation.player_role}**")
+
 if "messages" not in st.session_state:
     st.session_state.messages = [
         Message(role="assistant", content=st.session_state.situation.first_phrase)
