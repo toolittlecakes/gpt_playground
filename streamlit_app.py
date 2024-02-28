@@ -14,6 +14,7 @@ from situation import situation
 def get_manager():
     return stx.CookieManager()
 
+
 cookie_manager = get_manager()
 if cookie_manager.get("user_id") is None:
     cookie_manager.set(
@@ -94,6 +95,11 @@ if "turn" not in st.session_state:
 
 
 # print(st.session_state.messages)
+role_mapping = {
+    "user": st.session_state.situation.player_role,
+    "assistant": st.session_state.situation.assistant_role,
+}
+
 for message in st.session_state.messages:
     with st.chat_message(message.role):
         if message.explanation:
@@ -105,9 +111,15 @@ for message in st.session_state.messages:
                 }
                 """,
             ):
-                st.write(message.enriched_content, unsafe_allow_html=True)
-            continue
-        st.write(message.content)
+                st.write(
+                    "<details><summary>Analysis</summary>"
+                    f"\n\n```\n{message.explanation}\n```\n"
+                    "</blockquote></details>",
+                    unsafe_allow_html=True,
+                )
+                # st.write(message.enriched_content, unsafe_allow_html=True)
+            # continue
+        st.write(f"**{role_mapping[message.role]}**: {message.content}")
 
 with st.container():
     col1, col2, col3 = st.columns([0.2, 0.2, 0.6])
