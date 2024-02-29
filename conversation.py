@@ -4,6 +4,7 @@ import os
 import lunary
 from openai import OpenAI
 from pydantic import BaseModel
+from situation import Situation
 
 from user_prompt import FEEDBACK_PROMPT, USER_PROMPT
 from dotenv import load_dotenv
@@ -18,27 +19,7 @@ client = OpenAI()
 lunary.monitor(client)
 
 
-class Message(BaseModel):
-    role: str
-    content: str
-    explanation: str = ""
 
-    @property
-    def enriched_content(self):
-        return (
-            "<details><summary>Analysis</summary>"
-            f"\n\n```\n{self.explanation}\n```\n"
-            "</blockquote></details>"
-            f"{self.content}"
-        )
-
-
-class Context(BaseModel):
-    situation: str
-    player_role: str
-    assistant_role: str
-    assistant_role_description: str
-    messages: list[Message]
 
 
 def request_gpt(messages, temperature=0.6, max_tokens=700, **kwargs):
@@ -53,17 +34,17 @@ def request_gpt(messages, temperature=0.6, max_tokens=700, **kwargs):
     )  # type: ignore
 
 
-def get_response(context: Context, **kwargs):
-    role_mapping = {"user": context.player_role, "assistant": context.assistant_role}
+def get_response(situation: Situation, **kwargs):
+    role_mapping = {"user": situation.player_role, "assistant": situation.assistant_role}
     user_prompt_template = USER_PROMPT
     user_prompt = user_prompt_template.format(
-        situation=context.situation,
-        player_role=context.player_role,
-        assistant_role=context.assistant_role,
-        assistant_role_description=context.assistant_role_description,
+        situation=situation.description,
+        player_role=situation.player_role,
+        assistant_role=situation.assistant_role,
+        assistant_role_description=situation.assistant_role_description,
         history="\n\n".join(
             f"{role_mapping[message.role]} ({message.role}): {message.content}"
-            for message in context.messages
+            for message in situation.messages
         ),
     )
     messages = [
@@ -79,17 +60,17 @@ def get_response(context: Context, **kwargs):
     return content
 
 
-def get_feedback(context: Context, **kwargs):
-    role_mapping = {"user": context.player_role, "assistant": context.assistant_role}
+def get_feedback(situation: Situation, **kwargs):
+    role_mapping = {"user": situation.player_role, "assistant": situation.assistant_role}
     user_prompt_template = FEEDBACK_PROMPT
     user_prompt = user_prompt_template.format(
-        situation=context.situation,
-        player_role=context.player_role,
-        assistant_role=context.assistant_role,
-        assistant_role_description=context.assistant_role_description,
+        situation=situation.description,
+        player_role=situation.player_role,
+        assistant_role=situation.assistant_role,
+        assistant_role_description=situation.assistant_role_description,
         history="\n\n".join(
             f"{role_mapping[message.role]} ({message.role}): {message.enriched_content}"
-            for message in context.messages
+            for message in situation.messages
         ),
     )
     messages = [
@@ -106,13 +87,13 @@ class AssistantWithMonitoring:
         self.user_id = user_id
         self.session_id = session_id
 
-    def get_response(self, context: Context, **kwargs):
+    def get_response(self, situation: Situation, **kwargs):
         with lunary.identify(self.user_id):
             with lunary.tags("get_response"):
-                return get_response(context, **kwargs)
+                return get_response(situation, **kwargs)
 
-    def get_feedback(self, context: Context, **kwargs):
+    def get_feedback(self, situation: Situation, **kwargs):
         print(self.user_id, self.session_id)
         with lunary.identify(self.user_id):
             with lunary.tags("get_feedback"):
-                return get_feedback(context, **kwargs)
+                return get_feedback(situation, **kwargs)
