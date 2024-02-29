@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class State(Enum):
+class State(StrEnum):
     intro = "intro"
     user_input = "user_input"
     response_generation = "response_generation"

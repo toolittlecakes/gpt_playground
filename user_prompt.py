@@ -139,11 +139,9 @@ Provide an analisys of the last Defender's phrase and the next Aggressor's phras
 ## FORMAT (pure JSON)
 
 {{
-    "aggression_plan": {{
-        "thoughts": [Agressor's thoughts about the next phrase with highlighs and references to defense analysis],
-        "phrase": [phrase without quotes in Russian language],
-        "tactic": [tactic, one of ("Manipulation", "Agreement", "Negotiation", "True Emotions", "Stop Conversation")]
-    }}
+    "thoughts": [Agressor's thoughts about what Defender said and what to say next],
+    "phrase": [phrase without quotes in Russian language],
+    "behaviour_type": [one of ("Manipulation", "Apology", "Answering", "Agreement", "Negotiation", "Sincere Emotions", "Conversation Stop")]
 }}
 """.strip()
 )

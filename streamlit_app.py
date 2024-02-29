@@ -178,14 +178,14 @@ def get_feedback():
 
 wide_button("Начать", on_click=start)
 
-state = ss.state
 if ss.state == State.intro:
     st.stop()
 
+print(ss.state)
 
 for i, message in enumerate(messages):
     with st.chat_message(message.role, avatar=avatar_mapping[message.role]):
-        if message.explanation:
+        if message.explanation and authenticated == "admin":
             with stylable_container(
                 "codeblock",
                 """
@@ -224,7 +224,7 @@ if authenticated == "admin":
             wide_button(
                 "Получить фидбэк",
                 on_click=get_feedback,
-                disabled=ss.state != State.game_end,
+                disabled=ss.state not in [State.game_end, State.user_input],
             )
 else:
     if ss.state == State.game_end:
@@ -254,7 +254,7 @@ if ss.state == State.response_generation:
     messages.append(
         Message(
             role=ss.situation.assistant_role,
-            content=response["aggression_plan"]["phrase"],
+            content=response["phrase"],
             explanation=json.dumps(response, indent=2, ensure_ascii=False),
         )
     )
@@ -277,7 +277,7 @@ if ss.state == State.user_input and (
     (
         messages
         and messages[-1].explanation
-        and json.loads(messages[-1].explanation)["aggression_plan"]["tactic"]
+        and json.loads(messages[-1].explanation)["behaviour_type"]
         != "Manipulation"
     )
     or len(messages) > 10
