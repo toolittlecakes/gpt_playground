@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 
+
 class DefenderQuadrant(BaseModel):
     assertive: float = Field(..., ge=0, le=3)
     protective: float = Field(..., ge=0, le=3)
@@ -7,13 +8,11 @@ class DefenderQuadrant(BaseModel):
     attachment: float = Field(..., ge=0, le=3)
 
 
-
-
-
 class ManipulationDefenderAnalysis(BaseModel):
     defender_quadrant: DefenderQuadrant
     next_manipulation_quadrant: str
     defence_success: bool = False
+
 
 class NonManipulationDefenderAnalysis(BaseModel):
     defender_quadrant: DefenderQuadrant
@@ -22,7 +21,6 @@ class NonManipulationDefenderAnalysis(BaseModel):
 
 
 pr
-
 
 
 USER_PROMPT = """
@@ -34,7 +32,7 @@ USER_PROMPT = """
 
 Roles:
 Aggressor (You): {assistant_role}
-Defender (User): {player_role}
+Defender (User): {user_role}
 
 {assistant_role_description}
 
@@ -72,7 +70,7 @@ FIRST_PHRASE_USER_PROMPT = """
 
 Roles:
 Aggressor (You): {assistant_role}
-Defender (User): {player_role}
+Defender (User): {user_role}
 
 {assistant_role_description}
 

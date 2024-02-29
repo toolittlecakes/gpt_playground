@@ -20,7 +20,6 @@ lunary.monitor(client)
 
 
 def request_gpt(messages, temperature=0.6, max_tokens=700, **kwargs):
-
     return client.chat.completions.create(
         # model="gpt-4-1106-preview",
         model="gpt-4-0125-preview",
@@ -32,18 +31,14 @@ def request_gpt(messages, temperature=0.6, max_tokens=700, **kwargs):
 
 
 def get_response(situation: Situation, **kwargs):
-    role_mapping = {
-        "user": situation.player_role,
-        "assistant": situation.assistant_role,
-    }
     user_prompt_template = USER_PROMPT
     user_prompt = user_prompt_template.format(
         situation=situation.description,
-        player_role=situation.player_role,
+        user_role=situation.user_role,
         assistant_role=situation.assistant_role,
         assistant_role_description=situation.assistant_role_description,
         history="\n\n".join(
-            f"{role_mapping[message.role]} ({message.role}): {message.content}"
+            f"{message.role} ({message.role}): {message.content}"
             for message in situation.messages
         ),
     )
@@ -51,7 +46,6 @@ def get_response(situation: Situation, **kwargs):
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": user_prompt},
     ]
-    # with lunary.tags("get_response"):
     response = request_gpt(messages, response_format={"type": "json_object"}, **kwargs)
     if response.choices[0].finish_reason == "length":
         raise ValueError("Response too long. Json response is not complete.")
@@ -61,19 +55,15 @@ def get_response(situation: Situation, **kwargs):
 
 
 def get_feedback(situation: Situation, **kwargs):
-    role_mapping = {
-        "user": situation.player_role,
-        "assistant": situation.assistant_role,
-    }
     user_prompt_template = FEEDBACK_PROMPT
     user_prompt = user_prompt_template.format(
         situation=situation.description,
-        player_role=situation.player_role,
+        user_role=situation.user_role,
         assistant_role=situation.assistant_role,
         assistant_role_description=situation.assistant_role_description,
         history="\n\n".join(
-            # f"{role_mapping[message.role]} ({message.role}): {message.enriched_content}"
-            f"{role_mapping[message.role]} ({message.role}): {message.content}"
+            # f"{message.role} ({message.role}): {message.enriched_content}"
+            f"{message.role} ({message.role}): {message.content}"
             for message in situation.messages
         ),
     )

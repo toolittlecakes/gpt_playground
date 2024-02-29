@@ -106,7 +106,7 @@ PROMPT_PREFIX = """
 
 Roles:
 Aggressor (Assistant - you): {assistant_role}
-Defender (User): {player_role}
+Defender (User): {user_role}
 
 
 Assistant's role description:
