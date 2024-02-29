@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from streamlit_extras.stylable_container import stylable_container
 
 from conversation import AssistantWithMonitoring
-from situation import Message, situation
+from situations import situations, Message, DEFAULT_SITUATION
 from state import State
 
 load_dotenv()
@@ -59,6 +59,10 @@ ss = st.session_state
 #         st.rerun()
 #     st.stop()
 
+if "current_situation" not in ss:
+    ss.current_situation = DEFAULT_SITUATION
+situation = situations[ss.current_situation]
+
 if "user_id" not in ss:
     ss.user_id = cookie_manager.get("user_id")
 
@@ -72,8 +76,6 @@ if "state" not in ss:
     ss.state = State.intro
 
 messages = ss.situation.messages
-print(len(messages))
-print(len(situation.messages))
 role_mapping = {
     "user": ss.situation.user_role,
     "assistant": ss.situation.assistant_role,
@@ -110,7 +112,22 @@ P.s. Еще я оставил тебе часть возможностей ра�
 """.strip()
 
 st.write(intro)
+
+
+
 st.write("## Ситуация")
+if option := st.selectbox(
+    "Выбор ситуации",
+    list(situations.keys()),
+    index=list(situations.keys()).index(ss.current_situation),
+):
+    if option != ss.current_situation:
+        print("option", option, ss.current_situation)
+        ss.situation = situations[option].model_copy(deep=True)
+        ss.state = State.intro
+        ss.current_situation = option
+        st.rerun()
+
 if st.toggle("Редактирование ситуации (не смотри, если хочешь играть по честному)"):
     ss.situation.description = st.text_area(
         "Описание ситуации", value=ss.situation.description
@@ -182,7 +199,6 @@ wide_button("Начать", on_click=start)
 if ss.state == State.intro:
     st.stop()
 
-print(ss.state)
 
 for i, message in enumerate(messages):
     with st.chat_message(message.role, avatar=avatar_mapping[message.role]):
@@ -273,12 +289,13 @@ if ss.state == State.response_generation:
 #     if defence_analisys
 #     else 0
 # )
-
+if messages and messages[-1].explanation:
+    print(json.loads(messages[-1].explanation)["next_behaviour_type"])
 if ss.state == State.user_input and (
     (
         messages
         and messages[-1].explanation
-        and json.loads(messages[-1].explanation)["behaviour_type"] != "Manipulation"
+        and json.loads(messages[-1].explanation)["next_behaviour_type"] != "Manipulation"
     )
     or len(messages) > 10
     # or (defence_score < 5 and len(messages) > 8)

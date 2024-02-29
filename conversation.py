@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel
 
-from situation import Situation
+from situations.situation import Situation
 from user_prompt import FEEDBACK_PROMPT, USER_PROMPT
 
 load_dotenv()
@@ -39,8 +39,7 @@ def get_response(situation: Situation, **kwargs):
         assistant_role=situation.assistant_role,
         assistant_role_description=situation.assistant_role_description,
         history="\n\n".join(
-            f"{message.role} ({message.role}): {message.content}"
-            for message in situation.messages
+            f"{message.role}: {message.content}" for message in situation.messages
         ),
     )
     messages = [
@@ -64,7 +63,7 @@ def get_feedback(situation: Situation, **kwargs):
         assistant_role_description=situation.assistant_role_description,
         history="\n\n".join(
             # f"{message.role} ({message.role}): {message.enriched_content}"
-            f"{message.role} ({message.role}): {message.content}"
+            f"{message.role}: {message.content}"
             for message in situation.messages
         ),
     )
