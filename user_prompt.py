@@ -155,7 +155,7 @@ FEEDBACK_PROMPT = (
     + """
 ## ASK
 
-Provide an analisys of how Defender performed during the conflict based on the conversation history and the current situation. Highlight the most important moments with the consiquencies of the dialog, examples of good tactics and areas of improvement. Use Markdown to format your answer. Use the role names instead of Defender and Aggressor. Use Russian language.
+Provide an analisys of how Defender behaved during the conflict based on the conversation history and the current situation. Highlight the most important moments with the consiquencies of the dialog, examples of good tactics and areas of improvement. Use Markdown to format your answer. Use the role names instead of Defender and Aggressor. Use Russian language.
 
 """.strip()
 )

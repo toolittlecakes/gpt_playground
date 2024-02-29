@@ -2,12 +2,12 @@ import json
 import os
 
 import lunary
+from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel
-from situation import Situation
 
+from situation import Situation
 from user_prompt import FEEDBACK_PROMPT, USER_PROMPT
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -17,9 +17,6 @@ with open("prompts/_compiled_system.md") as f:
 client = OpenAI()
 
 lunary.monitor(client)
-
-
-
 
 
 def request_gpt(messages, temperature=0.6, max_tokens=700, **kwargs):
@@ -35,7 +32,10 @@ def request_gpt(messages, temperature=0.6, max_tokens=700, **kwargs):
 
 
 def get_response(situation: Situation, **kwargs):
-    role_mapping = {"user": situation.player_role, "assistant": situation.assistant_role}
+    role_mapping = {
+        "user": situation.player_role,
+        "assistant": situation.assistant_role,
+    }
     user_prompt_template = USER_PROMPT
     user_prompt = user_prompt_template.format(
         situation=situation.description,
@@ -61,7 +61,10 @@ def get_response(situation: Situation, **kwargs):
 
 
 def get_feedback(situation: Situation, **kwargs):
-    role_mapping = {"user": situation.player_role, "assistant": situation.assistant_role}
+    role_mapping = {
+        "user": situation.player_role,
+        "assistant": situation.assistant_role,
+    }
     user_prompt_template = FEEDBACK_PROMPT
     user_prompt = user_prompt_template.format(
         situation=situation.description,
@@ -69,7 +72,8 @@ def get_feedback(situation: Situation, **kwargs):
         assistant_role=situation.assistant_role,
         assistant_role_description=situation.assistant_role_description,
         history="\n\n".join(
-            f"{role_mapping[message.role]} ({message.role}): {message.enriched_content}"
+            # f"{role_mapping[message.role]} ({message.role}): {message.enriched_content}"
+            f"{role_mapping[message.role]} ({message.role}): {message.content}"
             for message in situation.messages
         ),
     )
