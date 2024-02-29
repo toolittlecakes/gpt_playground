@@ -140,7 +140,7 @@ Provide an analisys of the last Defender's phrase and the next Aggressor's phras
 
 {{
     "defense_strategies": [list of all applicable types from ["Атака-Отстранение", "Атака-Присоединение", "Защита-Отстранение", "Защита-Присоединение", "Обработка Эмоций", "Показывание Границ", "Защита Границ", "Сепарация"] in a []-brackets],
-    "thoughts": <Agressor's thoughts about what Defender said and what to say next>,
+    "thoughts": <Agressor's thoughts about what Defender said, what to say next and how to connect it to the conversation>,
     "next_behaviour_type": <one of ("Manipulation", "Apology", "Answering", "Agreement", "Negotiation", "Sincere Emotions", "Conversation Stop") based on a character's role description>,
     "phrase": <phrase without quotes in Russian language>,
 }}
