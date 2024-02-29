@@ -26,6 +26,7 @@ def request_gpt(messages, temperature=0.6, max_tokens=700, **kwargs):
         messages=messages,
         temperature=temperature,
         max_tokens=max_tokens,
+        timeout=60,
         **kwargs,
     )  # type: ignore
 

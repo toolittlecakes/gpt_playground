@@ -1,6 +1,7 @@
 import functools
 import json
 import os
+import time
 import uuid
 from datetime import datetime, timedelta
 
@@ -11,10 +12,14 @@ from streamlit_extras.stylable_container import stylable_container
 
 from conversation import AssistantWithMonitoring
 from situation import Message, situation
+from state import State
 
 load_dotenv()
 
 wide_button = functools.partial(st.button, use_container_width=True)
+
+
+# class State(StrEnum):
 
 
 def get_manager():
@@ -23,11 +28,20 @@ def get_manager():
 
 cookie_manager = get_manager()
 
+# if st.button("Log out"):
+#     cookie_manager.delete("authenticated")
+#     time.sleep(0.1)
+#     print("Log out")
+#     st.rerun()
+
 authenticated = cookie_manager.get("authenticated")
 if not authenticated:
     password = st.text_input("Пароль")
     if password == os.getenv("PASSWORD"):
-        authenticated = True
+        authenticated = "user"
+        cookie_manager.set("authenticated", authenticated)
+    if password == os.getenv("ADMIN_PASSWORD"):
+        authenticated = "admin"
         cookie_manager.set("authenticated", authenticated)
     st.stop()
 
@@ -39,30 +53,32 @@ if cookie_manager.get("user_id") is None:
         expires_at=datetime.now() + timedelta(days=90),
     )
 
-if "user_id" not in st.session_state:
-    st.session_state.user_id = cookie_manager.get("user_id")
+ss = st.session_state
 
-if "session_id" not in st.session_state:
-    st.session_state.session_id = uuid.uuid4()
+if "user_id" not in ss:
+    ss.user_id = cookie_manager.get("user_id")
 
-if "situation" not in st.session_state:
-    st.session_state.situation = situation.model_copy()
+if "session_id" not in ss:
+    ss.session_id = uuid.uuid4()
 
-if "turn" not in st.session_state:
-    st.session_state.turn = "start"
+if "situation" not in ss:
+    ss.situation = situation.model_copy(deep=True)
 
+if "state" not in ss:
+    ss.state = State.intro
 
-messages = st.session_state.situation.messages
-
+messages = ss.situation.messages
+print(len(messages))
+print(len(situation.messages))
 role_mapping = {
-    "user": st.session_state.situation.user_role,
-    "assistant": st.session_state.situation.assistant_role,
+    "user": ss.situation.user_role,
+    "assistant": ss.situation.assistant_role,
     "feedback": "Фидбэк",
 }
 
 avatar_mapping = {
-    "user": st.session_state.situation.user_avatar,
-    "assistant": st.session_state.situation.assistant_avatar,
+    "user": ss.situation.user_avatar,
+    "assistant": ss.situation.assistant_avatar,
     "feedback": "😎",
 }
 
@@ -70,9 +86,7 @@ avatar_mapping = {role_mapping[role]: avatar for role, avatar in avatar_mapping.
 
 
 def get_assistant():
-    return AssistantWithMonitoring(
-        user_id=st.session_state.user_id, session_id=st.session_state.session_id
-    )
+    return AssistantWithMonitoring(user_id=ss.user_id, session_id=ss.session_id)
 
 
 assistant = get_assistant()
@@ -97,72 +111,78 @@ st.write(intro)
 
 st.write("## Ситуация")
 if st.toggle("Редактирование ситуации (не смотри, если хочешь играть по честному)"):
-    st.session_state.situation.description = st.text_area(
-        "Описание ситуации", value=st.session_state.situation.description
+    ss.situation.description = st.text_area(
+        "Описание ситуации", value=ss.situation.description
     )
-    st.session_state.situation.user_role = st.text_input(
-        "Роль игрока", value=st.session_state.situation.user_role
+    ss.situation.user_role = st.text_input("Роль игрока", value=ss.situation.user_role)
+    ss.situation.assistant_role = st.text_input(
+        "Роль ассистента", value=ss.situation.assistant_role
     )
-    st.session_state.situation.assistant_role = st.text_input(
-        "Роль ассистента", value=st.session_state.situation.assistant_role
-    )
-    st.session_state.situation.assistant_role_description = st.text_area(
+    ss.situation.assistant_role_description = st.text_area(
         "Инструкция ассистента",
-        value=st.session_state.situation.assistant_role_description,
+        value=ss.situation.assistant_role_description,
     )
-    for i in range(st.session_state.situation.initial_message_number):
+    for i in range(ss.situation.initial_message_number):
         with st.container(border=True):
             st.write(f"Сообщение {i + 1}")
-            roles = [st.session_state.situation.user_role, st.session_state.situation.assistant_role]
+            roles = [
+                ss.situation.user_role,
+                ss.situation.assistant_role,
+            ]
             messages[i].role = (
-                st.selectbox(f"Роль", roles, index=roles.index(messages[i].role))
+                st.selectbox(
+                    f"Роль",
+                    roles,
+                    index=roles.index(messages[i].role),
+                    key=f"role_default_message_{i}",
+                )
                 or roles[0]
             )
             messages[i].content = st.text_area(f"Текст", value=messages[i].content)
-            if wide_button(f"Удалить"):
+            if wide_button(f"Удалить", key=f"delete_default_message_{i}"):
                 messages.pop(i)
-                st.session_state.situation.initial_message_number -= 1
+                ss.situation.initial_message_number -= 1
                 st.rerun()
     if wide_button("Добавить сообщение"):
-        messages.append(Message(role=role_mapping["user"], content=""))
-        st.session_state.situation.initial_message_number += 1
+        messages.append(Message(role=ss.situation.user_role, content=""))
+        ss.situation.initial_message_number += 1
         st.rerun()
 
     ids = {
-        "user_id": st.session_state.user_id,
-        "session_id": st.session_state.session_id,
+        "user_id": ss.user_id,
+        "session_id": ss.session_id,
     }
-    # st.write(ids)
 
-st.write(st.session_state.situation.description)
-st.write(f"Твоя роль: **{st.session_state.situation.user_role}**")
+st.write(ss.situation.description)
+st.write(f"Твоя роль: **{ss.situation.user_role}**")
 
 
 def start():
-    if st.session_state.turn == "start":
-        st.session_state.turn = "user"
+    if ss.state == State.intro:
+        ss.state = State.user_input
 
 
 def delete_message():
-    if len(messages) > st.session_state.situation.initial_message_number:
+    if len(messages) > ss.situation.initial_message_number:
         messages.pop()
-        st.session_state.turn = "user"
+        ss.state = State.user_input
 
 
 def run_generation():
-    st.session_state.turn = "assistant"
+    ss.state = State.response_generation
 
 
 def get_feedback():
-    st.session_state.turn = "feedback_request"
+    ss.state = State.feedback_generation
 
 
 wide_button("Начать", on_click=start)
 
-if st.session_state.turn == "start":
+state = ss.state
+if ss.state == State.intro:
     st.stop()
 
-# print(messages)
+
 for i, message in enumerate(messages):
     with st.chat_message(message.role, avatar=avatar_mapping[message.role]):
         if message.explanation:
@@ -184,39 +204,61 @@ for i, message in enumerate(messages):
         st.write(f"**{message.role}**: {message.content}")
 
 
-with st.container():
-    col1, col2, col3 = st.columns([0.2, 0.2, 0.6])
-    with col1:
-        wide_button("Удалить", on_click=delete_message)
-    with col2:
-        wide_button("Запустить", on_click=run_generation)
+if authenticated == "admin":
+    with st.container():
+        col1, col2, col3 = st.columns([0.25, 0.25, 0.5])
+        with col1:
+            wide_button(
+                "Удалить",
+                on_click=delete_message,
+                disabled=len(messages) <= ss.situation.initial_message_number,
+            )
+        with col2:
+            wide_button(
+                "Запустить",
+                on_click=run_generation,
+                disabled=ss.state != State.user_input,
+            )
 
-    if st.session_state.turn == "feedback":
         with col3:
-            wide_button("Получить фидбэк", on_click=get_feedback)
+            wide_button(
+                "Получить фидбэк",
+                on_click=get_feedback,
+                disabled=ss.state != State.game_end,
+            )
+else:
+    if ss.state == State.game_end:
+        wide_button(
+            "Получить фидбэк",
+            on_click=get_feedback,
+            disabled=ss.state != State.game_end,
+        )
 
 
 if message := st.chat_input(
     "Твой ответ",
-    disabled=st.session_state.turn not in ["assistant", "user"],
+    disabled=ss.state not in [State.user_input, State.response_generation],
 ):
-    messages.append(Message(role=role_mapping["user"], content=message))
-    st.session_state.turn = "assistant"
+    messages.append(Message(role=ss.situation.user_role, content=message))
+    ss.state = State.response_generation
     st.rerun()
 
 
-if st.session_state.turn == "assistant":
-    with st.chat_message("assistant"):
+if ss.state == State.response_generation:
+    with st.chat_message(
+        ss.situation.assistant_role, avatar=avatar_mapping[ss.situation.assistant_role]
+    ):
         with st.spinner("Печатает..."):
-            response = assistant.get_response(st.session_state.situation)
+            response = assistant.get_response(ss.situation)
+
     messages.append(
         Message(
-            role=role_mapping["assistant"],
+            role=ss.situation.assistant_role,
             content=response["aggression_plan"]["phrase"],
             explanation=json.dumps(response, indent=2, ensure_ascii=False),
         )
     )
-    st.session_state.turn = "user"
+    ss.state = State.user_input
     st.rerun()
 
 
@@ -231,7 +273,7 @@ if st.session_state.turn == "assistant":
 #     else 0
 # )
 
-if st.session_state.turn == "user" and (
+if ss.state == State.user_input and (
     (
         messages
         and messages[-1].explanation
@@ -241,13 +283,13 @@ if st.session_state.turn == "user" and (
     or len(messages) > 10
     # or (defence_score < 5 and len(messages) > 8)
 ):
-    st.session_state.turn = "feedback"
+    ss.state = State.game_end
     st.rerun()
 
-if st.session_state.turn == "feedback_request":
-    with st.chat_message("feedback", avatar="😎"):
+if ss.state == State.feedback_generation:
+    with st.chat_message("Фидбэк", avatar="😎"):
         with st.spinner("Печатает..."):
-            response = assistant.get_feedback(st.session_state.situation)
+            response = assistant.get_feedback(ss.situation)
     messages.append(Message(role="Фидбэк", content=response))
-    st.session_state.turn = "finish"
+    ss.state = State.feedback_provided
     st.rerun()
