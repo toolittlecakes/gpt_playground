@@ -19,20 +19,14 @@ load_dotenv()
 wide_button = functools.partial(st.button, use_container_width=True)
 
 
-# class State(StrEnum):
-
-
 def get_manager():
     return stx.CookieManager()
 
 
 cookie_manager = get_manager()
 
-# if st.button("Log out"):
+# if cookie_manager.get("authenticated"):
 #     cookie_manager.delete("authenticated")
-#     time.sleep(0.1)
-#     print("Log out")
-#     st.rerun()
 
 authenticated = cookie_manager.get("authenticated")
 if not authenticated:
@@ -54,6 +48,16 @@ if cookie_manager.get("user_id") is None:
     )
 
 ss = st.session_state
+
+# if "authenticated" not in ss:
+#     password = st.text_input("Пароль")
+#     if password == os.getenv("PASSWORD"):
+#         ss.authenticated = "user"
+#         st.rerun()
+#     if password == os.getenv("ADMIN_PASSWORD"):
+#         ss.authenticated = "admin"
+#         st.rerun()
+#     st.stop()
 
 if "user_id" not in ss:
     ss.user_id = cookie_manager.get("user_id")
@@ -92,7 +96,6 @@ def get_assistant():
 assistant = get_assistant()
 
 st.write("# Симулятор Конфликтов")
-st.write("## Введение")
 
 intro = """
 ## Введение
@@ -103,10 +106,10 @@ intro = """
 
 Чтобы начать диалог - жми `Начать` и отвечай на фразы своего собеседника, который начинает конфликт. В конце он выдаст тебе фидбэк. Чтобы перезапустить ситуацию - обнови страницу 🔄.
 
-P.s. Еще я оставил тебе часть возможностей разработчика - ты можешь отредактировать ситуацию или даже поменять на свою, если хочешь
+P.s. Еще я оставил тебе часть возможностей разработчика - ты можешь отредактировать ситуацию или даже поменять на свою, если хочешь.
 """.strip()
-st.write(intro)
 
+st.write(intro)
 st.write("## Ситуация")
 if st.toggle("Редактирование ситуации (не смотри, если хочешь играть по честному)"):
     ss.situation.description = st.text_area(
@@ -275,8 +278,7 @@ if ss.state == State.user_input and (
     (
         messages
         and messages[-1].explanation
-        and json.loads(messages[-1].explanation)["behaviour_type"]
-        != "Manipulation"
+        and json.loads(messages[-1].explanation)["behaviour_type"] != "Manipulation"
     )
     or len(messages) > 10
     # or (defence_score < 5 and len(messages) > 8)
