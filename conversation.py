@@ -72,7 +72,7 @@ def get_feedback(situation: Situation, **kwargs):
         {"role": "user", "content": user_prompt},
     ]
 
-    response = request_gpt(messages, max_tokens=1500, **kwargs)
+    response = request_gpt(messages, max_tokens=1500, timeout=120, **kwargs)
     return response.choices[0].message.content
 
 
