@@ -19,14 +19,14 @@ client = OpenAI()
 lunary.monitor(client)
 
 
-def request_gpt(messages, temperature=0.6, max_tokens=700, **kwargs):
+def request_gpt(messages, temperature=0.6, max_tokens=700, timeout=60, **kwargs):
     return client.chat.completions.create(
         # model="gpt-4-1106-preview",
         model="gpt-4-0125-preview",
         messages=messages,
         temperature=temperature,
         max_tokens=max_tokens,
-        timeout=60,
+        timeout=timeout,
         **kwargs,
     )  # type: ignore
 
